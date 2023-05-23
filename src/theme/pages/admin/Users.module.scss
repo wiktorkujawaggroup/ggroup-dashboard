@@ -1,0 +1,31 @@
+@import "../../colors";
+
+.table {
+  @apply w-full border border-blue-500;
+
+  td {
+    @apply border border-blue-500;
+    text-transform: uppercase;
+    padding: 16px;
+    counter-reset: counter;
+  }
+
+  .table--tab {
+    flex: 1;
+    @apply rounded-l-lg rounded-r-lg;
+    padding: 4px;
+    text-align: center;
+    white-space: nowrap;
+
+    &:nth-child(1) {
+      background-color: nth($tab-colors, 3);
+    }
+    &:nth-child(2) {
+      background-color: nth($tab-colors, 1);
+    }
+    &:nth-child(3) {
+      background-color: nth($tab-colors, 2);
+    }
+  }
+
+}
