@@ -6,7 +6,6 @@ import styles from "~/theme/pages/admin/UserGroups.module.scss";
 import { ReactComponent as Eye } from "~/assets/eye.svg";
 import { ReactComponent as Trash } from "~/assets/trash.svg";
 
-
 interface User {
   id: string;
   authProvider: string;
@@ -17,26 +16,41 @@ interface User {
   uid: string;
 }
 
+interface Resources {
+  title: string,
+  link: string,
+  description: string
+  visible_to: User[]
+}
+
 interface Group {
   id: string,
   name: string,
   users: User[]
 }
 
-const UserGroups = () => {
-  const [userGroups, setUserGroups] = useState<Group[]>([]);
+interface Section {
+  id: string;
+  name: string;
+  type: "SIDE" | "MAIN",
+  groups: Group[],
+  resources: Resources[]
+}
+
+const Sections = () => {
+  const [sections, setSections] = useState<Section[]>([]);
   const navigate = useNavigate();
 
-  const getUsers = async () => {
+  const getSections = async () => {
     try {
-      const q = query(collection(db, "groups"));
+      const q = query(collection(db, "sections"));
       const document = await getDocs(q);
       const data = await Promise.all(document.docs.map(async (item) => {
 
-        const groupsData = item.data();
+        const sectionsData = item.data();
 
-        const users = groupsData?.users?.length ? await Promise.all(groupsData?.users?.map( async ({id}: any) => {
-          const docRef = doc(db, "users", id);
+        const groups = sectionsData?.groups?.length ? await Promise.all(sectionsData?.groups?.map( async ({id}: any) => {
+          const docRef = doc(db, "groups", id);
           const result = await getDoc(docRef);
           return result.exists() ? result.data() : null
         })): [];
@@ -50,7 +64,7 @@ const UserGroups = () => {
         return {
           id: item.id,
           ...item.data(),
-          users: users.filter(item => item).map( ({group, ...user }) => user)
+          groups: groups.filter(item => item).map( ({users, ...group }) => group)
         };
       }));
       // eslint-disable-next-line prefer-const
@@ -66,48 +80,50 @@ const UserGroups = () => {
       //   });
       // });
 
-      setUserGroups(data);
+      setSections(data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const deleteGroup = async (id: string) => {
-    await deleteDoc(doc(db, "groups", id));
-    setUserGroups( prev => prev.filter(item => item.id!==id))
+  const deleteSection = async (id: string) => {
+    await deleteDoc(doc(db, "sections", id));
+    setSections( prev => prev.filter(item => item.id!==id))
   }
 
   useEffect(() => {
-    getUsers();
+    getSections();
   }, []);
 
   
   return (
     <section>
-      <button onClick={() => navigate("/admin/add-group")} className="mb-4 text-right ml-auto block bg-yellow-400">Add new Group</button>
+      <button onClick={() => navigate("/admin/add-section")} className="mb-4 text-right ml-auto block bg-yellow-400">Add new Section</button>
     <table className={styles.table}>
       <thead>
         <tr>
           <td>Name</td>
-          <td>Users Count</td>
+          <td>Type</td>
+          <td>Resources count</td>
+          <td>USER_GROUPS</td>
           <td>Actions</td>
         </tr>
       </thead>
       <tbody>
-        {userGroups?.map((group) => {
+        {sections?.map((section) => {
           return (
-            <tr key={group.id}>
-              <td>{group.name}</td>
-              <td>{group?.users?.length}</td>
+            <tr key={section.id}>
+              <td>{section.name}</td>
+              <td>{section?.resources?.length}</td>
               <td>
                 <div className="flex justify-between">
 
-                      <div role="button" onClick={() => alert(JSON.stringify(group.users))}>
+                      <div role="button" onClick={() => alert(JSON.stringify(section))}>
                         <Eye className="mx-auto fill-blue-500 w-8 h-8"/>
                         <span>Details</span>
                       </div>
 
-                      <div role="button" onClick={() => deleteGroup(group.id)}>
+                      <div role="button" onClick={() => deleteSection(section.id)}>
                         <Trash className="mx-auto fill-white w-8 h-8"/>
                         <span>Remove</span>
                       </div>
@@ -123,4 +139,4 @@ const UserGroups = () => {
   );
 };
 
-export default UserGroups;
+export default Sections;
