@@ -17,7 +17,7 @@
     text-align: center;
     white-space: nowrap;
 
-    &:nth-child(n) {
+    &:nth-child(1) {
       background-color: nth($tab-colors, 3);
     }
     &:nth-child(2) {

@@ -1,13 +1,18 @@
-import { collection, doc, getDocs, query, updateDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import styles from "~/theme/pages/admin/Users.module.scss";
+
+
+interface Group {
+  name: string;
+}
 
 interface User {
   id: string;
   authProvider: string;
   email: string;
-  group?: string[];
+  group?: Group[];
   name: string;
   role?: "admin" | "user";
   uid: string;
@@ -19,13 +24,23 @@ const Users = () => {
   const getUsers = async () => {
     try {
       const q = query(collection(db, "users"));
-      const doc = await getDocs(q);
-      const data = doc.docs.map((item) => {
+      const documents = await getDocs(q);
+      const data = await Promise.all(documents.docs.map( async (item) => {
+
+        const userData = item.data();
+
+        const groups = userData?.group?.length ? await Promise.all(userData?.group?.map( async ({id}: any) => {
+          const docRef = doc(db, "groups", id);
+          const result = await getDoc(docRef);
+          return result.exists() ? result.data() : null
+        })): [];
+
         return {
           id: item.id,
-          ...item.data(),
+          ...userData,
+          group: groups.filter(item => item).map( ({users, ...group }) => group)
         };
-      });
+      }));
       setUsers(data);
     } catch (err) {
       console.error(err);
@@ -73,9 +88,9 @@ const Users = () => {
                 <div className="flex flex-wrap gap-2">
                   {user.group?.map((item) => {
                     return (
-                      <div className={styles["table--tab"]} key={item}>
+                      <div className={styles["table--tab"]} key={item?.name}>
                         {" "}
-                        {item}
+                        {item?.name}
                       </div>
                     );
                   })}

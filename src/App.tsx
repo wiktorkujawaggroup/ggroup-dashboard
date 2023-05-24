@@ -11,6 +11,7 @@ import HRNest from "./pages/dashboard/HRNest";
 import Admin from "./pages/admin";
 import Users from "./pages/admin/Users";
 import UserGroups from "./pages/admin/UserGroups";
+import AddGroup from "./pages/admin/AddGroup";
 
 function App() {
   
@@ -23,6 +24,7 @@ function App() {
         <Route path="/admin" element={<LAdminLayout><Admin /></LAdminLayout>} />
         <Route path="/admin/users" element={<LAdminLayout><Users /></LAdminLayout>} />
         <Route path="/admin/user-groups" element={<LAdminLayout><UserGroups /></LAdminLayout>} />
+        <Route path="/admin/add-group" element={<LAdminLayout><AddGroup /></LAdminLayout>} />
 
         
         
